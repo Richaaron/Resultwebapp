@@ -1,10 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  password    String
+  role        String       // ADMIN, TEACHER
+  fullName    String
+  image       String?      // Profile picture URL
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+  logs        ActivityLog[]
+}
+
+model Assignment {
+  id        Int      @id @default(autoincrement())
+  teacherId Int
+  class     String?  // If assigned to a whole class
+  subjectId Int?     // If assigned to a specific subject in a class
+  category  String?  // PRE-NURSERY, NURSERY, PRIMARY, SECONDARY
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  teacher   User     @relation(fields: [teacherId], references: [id])
 }
 
 model Student {
@@ -14,32 +37,66 @@ model Student {
   lastName  String
   category  String   // NURSERY, PRIMARY, SECONDARY
   class     String   // e.g., "Primary 1", "JSS 1"
+  image     String?  // Profile picture URL
   results   Result[]
+  assessments Assessment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Assessment {
+  id            Int      @id @default(autoincrement())
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     Int
+  term          String
+  session       String
+  punctuality   Int      @default(5) // 1-5 scale
+  neatness      Int      @default(5)
+  honesty       Int      @default(5)
+  leadership    Int      @default(5)
+  creativity    Int      @default(5)
+  teacherComment String?
+  principalComment String?
+  attendance    Int?     // Days present
+  totalDays     Int?     // Total school days
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, term, session])
+}
+
 model Subject {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  results   Result[]
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  assignments Assignment[]
+  results     Result[]
 }
 
 model Result {
-  id          Int      @id @default(autoincrement())
-  student     Student  @relation(fields: [studentId], references: [id])
-  studentId   Int
-  subject     Subject  @relation(fields: [subjectId], references: [id])
-  subjectId   Int
-  ca1         Float    @default(0)
-  ca2         Float    @default(0)
-  exam        Float    @default(0)
-  total       Float    @default(0)
-  grade       String?
-  term        String   // First, Second, Third
-  session     String   // e.g., "2023/2024"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  subjectId Int
+  ca1       Float    @default(0)
+  ca2       Float    @default(0)
+  exam      Float    @default(0)
+  total     Float    @default(0)
+  grade     String?
+  term      String
+  session   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, subjectId, term, session])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // e.g., "LOGIN", "CREATE_STUDENT", "UPDATE_RESULT"
+  details   String?  // JSON string or description
+  ipAddress String?
+  createdAt DateTime @default(now())
 }

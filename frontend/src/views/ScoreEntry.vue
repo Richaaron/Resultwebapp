@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useResultStore } from '../store';
-import { Save, AlertCircle } from 'lucide-vue-next';
+import { useAuthStore } from '../store/auth';
+import { useNotificationStore } from '../store/notifications';
+import { Save, AlertCircle, TrendingUp } from 'lucide-vue-next';
 
 const store = useResultStore();
+const auth = useAuthStore();
+const notifications = useNotificationStore();
 
 const filters = ref({
   studentId: null as number | null,
@@ -18,18 +22,89 @@ const scores = ref({
   exam: 0,
 });
 
+const assessment = ref({
+  punctuality: 5,
+  neatness: 5,
+  honesty: 5,
+  leadership: 5,
+  creativity: 5,
+  teacherComment: '',
+  principalComment: '',
+  attendance: 0,
+  totalDays: 90,
+});
+
+const totalScore = computed(() => (scores.value.ca1 || 0) + (scores.value.ca2 || 0) + (scores.value.exam || 0));
+
+const currentGrade = computed(() => {
+  const total = totalScore.value;
+  if (total >= 70) return 'A';
+  if (total >= 60) return 'B';
+  if (total >= 50) return 'C';
+  if (total >= 45) return 'D';
+  if (total >= 40) return 'E';
+  return 'F';
+});
+
 onMounted(() => {
   store.fetchStudents();
   store.fetchSubjects();
 });
 
+watch([() => filters.value.studentId, () => filters.value.term, () => filters.value.session], async ([sId, t, s]) => {
+  if (sId) {
+    const data = await store.getAssessment(sId, t, s);
+    if (data.id) {
+      assessment.value = { ...data };
+    } else {
+      assessment.value = {
+        punctuality: 5,
+        neatness: 5,
+        honesty: 5,
+        leadership: 5,
+        creativity: 5,
+        teacherComment: '',
+        principalComment: '',
+        attendance: 0,
+        totalDays: 90,
+      };
+    }
+  }
+});
+
+const filteredStudents = computed(() => {
+  if (auth.isAdmin) return store.students;
+  const assignments = auth.user?.assignments || [];
+  return store.students.filter(student => {
+    return assignments.some((a: any) => {
+      const classMatch = !a.class || a.class === student.class;
+      const categoryMatch = !a.category || a.category === student.category;
+      return classMatch && categoryMatch;
+    });
+  });
+});
+
+const filteredSubjects = computed(() => {
+  if (auth.isAdmin) return store.subjects;
+  const assignments = auth.user?.assignments || [];
+  
+  // If teacher is assigned to specific subjects, filter those. 
+  // If subjectId is null in assignment, it means they teach all subjects in that class/category.
+  const specificSubjectIds = assignments.map((a: any) => a.subjectId).filter(Boolean);
+  if (specificSubjectIds.length > 0 && assignments.every((a: any) => a.subjectId)) {
+    return store.subjects.filter(s => specificSubjectIds.includes(s.id));
+  }
+  return store.subjects;
+});
+
 const handleSave = async () => {
   if (!filters.value.studentId || !filters.value.subjectId) {
-    alert('Please select a student and a subject');
+    notifications.error('Please select a student and a subject');
     return;
   }
 
   try {
+    // Save Score
     await store.upsertResult({
       studentId: filters.value.studentId,
       subjectId: filters.value.subjectId,
@@ -37,9 +112,18 @@ const handleSave = async () => {
       session: filters.value.session,
       ...scores.value,
     });
-    alert('Score saved successfully!');
+
+    // Save Assessment
+    await store.upsertAssessment({
+      studentId: filters.value.studentId,
+      term: filters.value.term,
+      session: filters.value.session,
+      ...assessment.value,
+    });
+
+    notifications.success('Records saved successfully!');
   } catch (err) {
-    alert('Failed to save score');
+    // Error notification handled by interceptor
   }
 };
 
@@ -48,78 +132,119 @@ const sessions = ['2023/2024', '2024/2025'];
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto space-y-8">
-    <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-      <h3 class="text-xl font-bold mb-6">Enter Student Scores</h3>
+  <div class="max-w-4xl mx-auto space-y-6 md:space-y-10">
+    <div class="bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 relative overflow-hidden">
+      <div class="absolute top-0 right-0 p-4 md:p-8">
+        <FileEdit class="w-10 h-10 md:w-16 md:h-16 text-gold-900/20" />
+      </div>
       
-      <div class="grid grid-cols-2 gap-6 mb-8">
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-gray-700">Select Student</label>
-          <select v-model="filters.studentId" class="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
-            <option v-for="student in store.students" :key="student.id" :value="student.id">
+      <h3 class="text-xl md:text-2xl font-black text-gold-500 uppercase tracking-widest mb-6 md:mb-10">Academic Record Entry</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8 md:mb-12">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Select Student</label>
+          <select v-model="filters.studentId" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base">
+            <option v-for="student in filteredStudents" :key="student.id" :value="student.id">
               {{ student.firstName }} {{ student.lastName }} ({{ student.regNo }})
             </option>
           </select>
         </div>
 
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-gray-700">Select Subject</label>
-          <select v-model="filters.subjectId" class="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
-            <option v-for="subject in store.subjects" :key="subject.id" :value="subject.id">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Select Subject</label>
+          <select v-model="filters.subjectId" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base">
+            <option v-for="subject in filteredSubjects" :key="subject.id" :value="subject.id">
               {{ subject.name }}
             </option>
           </select>
         </div>
 
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-gray-700">Term</label>
-          <select v-model="filters.term" class="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Academic Term</label>
+          <select v-model="filters.term" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base">
             <option v-for="term in terms" :key="term" :value="term">{{ term }} Term</option>
           </select>
         </div>
 
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-gray-700">Session</label>
-          <select v-model="filters.session" class="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary-500">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Academic Session</label>
+          <select v-model="filters.session" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base">
             <option v-for="s in sessions" :key="s" :value="s">{{ s }}</option>
           </select>
         </div>
       </div>
 
-      <div class="bg-gray-50 p-8 rounded-xl border border-gray-200">
-        <div class="grid grid-cols-3 gap-8">
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-600 uppercase tracking-wider">CA 1 (20%)</label>
-            <input v-model.number="scores.ca1" type="number" max="20" min="0" class="w-full px-4 py-3 text-2xl font-bold border rounded-xl text-center focus:ring-4 focus:ring-primary-100 outline-none" />
+      <div class="bg-black/60 p-6 md:p-10 rounded-2xl md:rounded-3xl border border-gold-900/20 shadow-inner">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-10">
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-gold-800 uppercase tracking-[0.2em] text-center block">CA 1 (20%)</label>
+            <input v-model.number="scores.ca1" type="number" max="20" min="0" class="w-full px-4 md:px-6 py-3 md:py-5 text-2xl md:text-4xl font-black bg-gold-900/10 border-2 border-gold-900/30 rounded-xl md:rounded-2xl text-gold-500 text-center focus:border-gold-500 outline-none transition-all shadow-lg" />
           </div>
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-600 uppercase tracking-wider">CA 2 (20%)</label>
-            <input v-model.number="scores.ca2" type="number" max="20" min="0" class="w-full px-4 py-3 text-2xl font-bold border rounded-xl text-center focus:ring-4 focus:ring-primary-100 outline-none" />
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-gold-800 uppercase tracking-[0.2em] text-center block">CA 2 (20%)</label>
+            <input v-model.number="scores.ca2" type="number" max="20" min="0" class="w-full px-4 md:px-6 py-3 md:py-5 text-2xl md:text-4xl font-black bg-gold-900/10 border-2 border-gold-900/30 rounded-xl md:rounded-2xl text-gold-500 text-center focus:border-gold-500 outline-none transition-all shadow-lg" />
           </div>
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-600 uppercase tracking-wider">Exam (60%)</label>
-            <input v-model.number="scores.exam" type="number" max="60" min="0" class="w-full px-4 py-3 text-2xl font-bold border rounded-xl text-center focus:ring-4 focus:ring-primary-100 outline-none" />
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-gold-800 uppercase tracking-[0.2em] text-center block">Exam (60%)</label>
+            <input v-model.number="scores.exam" type="number" max="60" min="0" class="w-full px-4 md:px-6 py-3 md:py-5 text-2xl md:text-4xl font-black bg-gold-900/10 border-2 border-gold-900/30 rounded-xl md:rounded-2xl text-gold-500 text-center focus:border-gold-500 outline-none transition-all shadow-lg" />
           </div>
         </div>
 
-        <div class="mt-8 flex items-center justify-between p-4 bg-white rounded-lg border border-primary-100">
-          <div class="flex items-center text-primary-700">
-            <TrendingUp class="w-5 h-5 mr-2" />
-            <span class="font-bold">Total Score: {{ scores.ca1 + scores.ca2 + scores.exam }}/100</span>
+        <div class="mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-between p-4 md:p-6 bg-gold-900/20 rounded-xl md:rounded-2xl border border-gold-500/20 shadow-xl gap-4">
+          <div class="flex flex-col items-center sm:items-start">
+            <div class="flex items-center text-gold-500 mb-1">
+              <TrendingUp class="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
+              <span class="text-lg md:text-xl font-black tracking-tighter uppercase">Total: {{ totalScore }} / 100</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-[10px] font-black text-gold-700 uppercase tracking-widest mr-2">Automatic Grade:</span>
+              <span class="text-xl md:text-2xl font-black text-gold-100" :class="currentGrade === 'F' ? 'text-red-500' : 'text-gold-100'">{{ currentGrade }}</span>
+            </div>
           </div>
           <button 
             @click="handleSave"
-            class="flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-200"
+            class="w-full sm:w-auto flex items-center justify-center px-10 py-4 bg-gold-500 text-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-400 transition-all shadow-xl shadow-gold-500/20 active:scale-[0.98]"
           >
-            <Save class="w-5 h-5 mr-2" />
-            Save Result
+            <Save class="w-5 h-5 mr-3" />
+            Commit Record
           </button>
         </div>
       </div>
 
-      <div class="mt-6 flex items-start space-x-2 text-sm text-gray-500">
-        <AlertCircle class="w-4 h-4 mt-0.5 text-orange-500" />
-        <p>Ensure all scores are accurate before saving. The system will automatically compute the grade based on the school's standards.</p>
+      <div class="mt-8 md:mt-10 flex items-center justify-center space-x-3 px-4 text-center">
+        <AlertCircle class="w-5 h-5 text-gold-700 shrink-0" />
+        <p class="text-[10px] font-black text-gold-800 uppercase tracking-widest leading-relaxed">Authorized data entry only. All changes are logged.</p>
+      </div>
+    </div>
+
+    <!-- Behavioral Assessment -->
+    <div class="bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20">
+      <h3 class="text-xl md:text-2xl font-black text-gold-500 uppercase tracking-widest mb-8 md:mb-10">Behavioral Assessment</h3>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
+        <div v-for="trait in ['punctuality', 'neatness', 'honesty', 'leadership', 'creativity']" :key="trait" class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">{{ trait }} (1-5)</label>
+          <input 
+            v-model.number="assessment[trait as keyof typeof assessment]" 
+            type="number" min="1" max="5" 
+            class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base" 
+          />
+        </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Attendance (Days)</label>
+          <input v-model.number="assessment.attendance" type="number" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-sm md:text-base" />
+        </div>
+      </div>
+
+      <div class="space-y-4 md:space-y-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Teacher's Comment</label>
+          <textarea v-model="assessment.teacherComment" rows="3" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all resize-none text-sm md:text-base"></textarea>
+        </div>
+        <div v-if="auth.isAdmin" class="space-y-2">
+          <label class="text-[10px] font-black text-gold-700 uppercase tracking-widest ml-1">Principal's Comment</label>
+          <textarea v-model="assessment.principalComment" rows="3" class="w-full px-4 md:px-5 py-3 md:py-4 bg-black/40 border border-gold-900/30 rounded-xl md:rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all resize-none text-sm md:text-base"></textarea>
+        </div>
       </div>
     </div>
   </div>
