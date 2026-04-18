@@ -9,14 +9,19 @@ export const getStudents = async (req: any, res: Response) => {
   const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
   const take = parseInt(limit as string);
 
-  let where: any = {};
+  let where: any = { schoolId: req.school.id };
   
   // Search filter
   if (search) {
-    where.OR = [
-      { firstName: { contains: search as string } },
-      { lastName: { contains: search as string } },
-      { regNo: { contains: search as string } },
+    where.AND = [
+      { schoolId: req.school.id },
+      {
+        OR: [
+          { firstName: { contains: search as string } },
+          { lastName: { contains: search as string } },
+          { regNo: { contains: search as string } },
+        ],
+      }
     ];
   }
 
@@ -71,7 +76,15 @@ export const createStudent = async (req: any, res: Response) => {
   
   try {
     const student = await prisma.student.create({
-      data: { regNo, firstName, lastName, category, class: studentClass, image: image || null },
+      data: { 
+        regNo, 
+        firstName, 
+        lastName, 
+        category, 
+        class: studentClass, 
+        image: image || null,
+        schoolId: req.school.id
+      },
     });
 
     await logActivity(req.user.id, 'CREATE_STUDENT', { studentId: student.id, regNo }, req.ip);
@@ -96,7 +109,7 @@ export const getStudentById = async (req: Request, res: Response) => {
     where: { id: parsedId },
     include: { results: { include: { subject: true } } },
   });
-  if (!student) throw new AppError('Student not found', 404);
+  if (!student || student.schoolId !== req.school.id) throw new AppError('Student not found', 404);
   res.json(student);
 };
 

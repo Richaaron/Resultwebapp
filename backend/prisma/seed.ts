@@ -4,6 +4,17 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Create Default School
+  const school = await prisma.school.upsert({
+    where: { slug: 'demo' },
+    update: {},
+    create: {
+      name: 'Demo School',
+      slug: 'demo',
+    },
+  });
+  console.log('Default school created');
+
   // Create Admin
   const hashedPassword = await bcrypt.hash('admin123', 10);
   await prisma.user.upsert({
@@ -14,6 +25,7 @@ async function main() {
       password: hashedPassword,
       role: 'ADMIN',
       fullName: 'System Administrator',
+      schoolId: school.id,
     },
   });
   console.log('Admin user created');
@@ -26,9 +38,9 @@ async function main() {
 
   for (const name of subjects) {
     await prisma.subject.upsert({
-      where: { name },
+      where: { name_schoolId: { name, schoolId: school.id } },
       update: {},
-      create: { name },
+      create: { name, schoolId: school.id },
     });
   }
 

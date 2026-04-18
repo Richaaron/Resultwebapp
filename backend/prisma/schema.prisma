@@ -7,17 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model School {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  logo      String?  // School logo URL
+  address   String?
+  motto     String?
+  isPublic  Boolean  @default(true) // If parents can check results online
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  students  Student[]
+  subjects  Subject[]
+  gradingScales GradingScale[]
+}
+
+model GradingScale {
+  id        Int      @id @default(autoincrement())
+  schoolId  Int
+  school    School   @relation(fields: [schoolId], references: [id])
+  category  String?  // If specific to a category
+  grade     String
+  minScore  Float
+  maxScore  Float
+  remark    String?
+  
+  @@unique([schoolId, category, grade])
+}
+
 model User {
   id          Int          @id @default(autoincrement())
-  username    String       @unique
+  username    String       
   password    String
   role        String       // ADMIN, TEACHER
   fullName    String
   image       String?      // Profile picture URL
+  schoolId    Int
+  school      School       @relation(fields: [schoolId], references: [id])
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   assignments Assignment[]
   logs        ActivityLog[]
+
+  @@unique([username, schoolId])
 }
 
 model Assignment {
@@ -32,16 +65,20 @@ model Assignment {
 
 model Student {
   id        Int      @id @default(autoincrement())
-  regNo     String   @unique
+  regNo     String   
   firstName String
   lastName  String
   category  String   // NURSERY, PRIMARY, SECONDARY
   class     String   // e.g., "Primary 1", "JSS 1"
   image     String?  // Profile picture URL
+  schoolId  Int
+  school    School   @relation(fields: [schoolId], references: [id])
   results   Result[]
   assessments Assessment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([regNo, schoolId])
 }
 
 model Assessment {
@@ -67,9 +104,13 @@ model Assessment {
 
 model Subject {
   id          Int          @id @default(autoincrement())
-  name        String       @unique
+  name        String       
+  schoolId    Int
+  school      School       @relation(fields: [schoolId], references: [id])
   assignments Assignment[]
   results     Result[]
+
+  @@unique([name, schoolId])
 }
 
 model Result {

@@ -53,13 +53,18 @@ export const getBroadsheet = async (req: any, res: Response) => {
 };
 
 export const exportBroadsheet = async (req: any, res: Response) => {
-  const { class: className, term, session } = req.query;
+  // ... existing code
+};
+
+export const getCumulativeBroadsheet = async (req: any, res: Response) => {
+  const { class: className, session } = req.query;
+  
   try {
     const students = await prisma.student.findMany({
-      where: { class: className as string },
+      where: { class: className as string, schoolId: req.school.id },
       include: {
         results: {
-          where: { term: term as string, session: session as string },
+          where: { session: session as string },
           include: { subject: true }
         }
       }
@@ -72,37 +77,42 @@ export const exportBroadsheet = async (req: any, res: Response) => {
       where: { id: { in: Array.from(subjectIds) } }
     });
 
-    // CSV Headers
-    let csv = 'Reg No,Full Name,' + subjects.map(s => s.name).join(',') + ',Total,Average,Rank\n';
-
-    // CSV Rows
-    const rows = students.map(student => {
+    const cumulativeData = students.map(student => {
       const studentResults: any = {};
+      
+      // Group results by subject
+      const resultsBySubject: any = {};
       student.results.forEach(r => {
-        studentResults[r.subjectId] = r.total;
+        if (!resultsBySubject[r.subjectId]) resultsBySubject[r.subjectId] = [];
+        resultsBySubject[r.subjectId].push(r);
       });
 
-      const totalScore = student.results.reduce((sum, r) => sum + r.total, 0);
-      const average = (student.results.length > 0 ? totalScore / student.results.length : 0).toFixed(2);
+      subjects.forEach(subject => {
+        const subjectResults = resultsBySubject[subject.id] || [];
+        const first = subjectResults.find(r => r.term === 'First')?.total || 0;
+        const second = subjectResults.find(r => r.term === 'Second')?.total || 0;
+        const third = subjectResults.find(r => r.term === 'Third')?.total || 0;
+        const average = (first + second + third) / 3;
+        
+        studentResults[subject.id] = {
+          first, second, third, average
+        };
+      });
+
+      const totalAverage = Object.values(studentResults).reduce((sum: number, r: any) => sum + r.average, 0);
+      const sessionAverage = Object.values(studentResults).length > 0 ? totalAverage / Object.values(studentResults).length : 0;
 
       return {
+        id: student.id,
         regNo: student.regNo,
         fullName: `${student.firstName} ${student.lastName}`,
-        results: studentResults,
-        totalScore,
-        average
+        subjectData: studentResults,
+        sessionAverage
       };
-    }).sort((a, b) => b.totalScore - a.totalScore);
+    }).sort((a, b) => b.sessionAverage - a.sessionAverage);
 
-    rows.forEach((row, index) => {
-      const subjectScores = subjects.map(s => row.results[s.id] || '-').join(',');
-      csv += `${row.regNo},${row.fullName},${subjectScores},${row.totalScore},${row.average},${index + 1}\n`;
-    });
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=broadsheet_${className}_${term}_${session}.csv`);
-    res.status(200).send(csv);
+    res.json({ cumulativeData, subjects });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to export CSV' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

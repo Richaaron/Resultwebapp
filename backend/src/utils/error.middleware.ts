@@ -10,13 +10,18 @@ export class AppError extends Error {
 }
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
+  console.error('--- API ERROR ---');
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  if (err.code) console.error('Prisma Code:', err.code);
+  console.error('-----------------');
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
 
   res.status(statusCode).json({
     error: message,
+    code: err.code,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 };
