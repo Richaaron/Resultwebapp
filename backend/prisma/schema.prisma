@@ -1,0 +1,45 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  regNo     String   @unique
+  firstName String
+  lastName  String
+  category  String   // NURSERY, PRIMARY, SECONDARY
+  class     String   // e.g., "Primary 1", "JSS 1"
+  results   Result[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  results   Result[]
+}
+
+model Result {
+  id          Int      @id @default(autoincrement())
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   Int
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  ca1         Float    @default(0)
+  ca2         Float    @default(0)
+  exam        Float    @default(0)
+  total       Float    @default(0)
+  grade       String?
+  term        String   // First, Second, Third
+  session     String   // e.g., "2023/2024"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, subjectId, term, session])
+}
