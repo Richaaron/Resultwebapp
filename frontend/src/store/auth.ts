@@ -6,6 +6,15 @@ export interface User {
   username: string;
   role: 'ADMIN' | 'TEACHER';
   fullName: string;
+  schoolId: number;
+  school?: {
+    id: number;
+    name: string;
+    slug: string;
+    logo?: string;
+    motto?: string;
+    address?: string;
+  };
   assignments?: any[];
 }
 

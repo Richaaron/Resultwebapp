@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useResultStore } from '../store';
 import { useAuthStore } from '../store/auth';
 import { useNotificationStore } from '../store/notifications';
-import { Save, AlertCircle, TrendingUp } from 'lucide-vue-next';
+import { Save, AlertCircle, TrendingUp, Upload, Download } from 'lucide-vue-next';
 
 const store = useResultStore();
 const auth = useAuthStore();
@@ -127,6 +127,53 @@ const handleSave = async () => {
   }
 };
 
+const downloadTemplate = () => {
+  const headers = 'regNo,subjectName,ca1,ca2,exam';
+  const example = 'REG001,Mathematics,15,12,45';
+  const blob = new Blob([`${headers}\n${example}`], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', 'score_upload_template.csv');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+const handleBulkUpload = async (event: any) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e: any) => {
+    const text = e.target.result;
+    const lines = text.split('\n');
+    const headers = lines[0].split(',');
+    
+    const data = lines.slice(1).filter((l: string) => l.trim()).map((line: string) => {
+      const values = line.split(',');
+      const item: any = {};
+      headers.forEach((h: string, i: number) => {
+        item[h.trim()] = values[i]?.trim();
+      });
+      return item;
+    });
+
+    try {
+      await api.post('/results/bulk', {
+        results: data,
+        term: filters.value.term,
+        session: filters.value.session
+      });
+      notifications.success('Bulk upload successful!');
+    } catch (err) {
+      // Handled by interceptor
+    }
+  };
+  reader.readAsText(file);
+};
+
 const terms = ['First', 'Second', 'Third'];
 const sessions = ['2023/2024', '2024/2025'];
 </script>
@@ -208,8 +255,27 @@ const sessions = ['2023/2024', '2024/2025'];
             <Save class="w-5 h-5 mr-3" />
             Commit Record
           </button>
+      </div>
+
+      <!-- Bulk Upload Section -->
+      <div v-if="auth.isAdmin" class="mt-8 pt-8 border-t border-gold-900/10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h4 class="text-xs font-black text-gold-500 uppercase tracking-widest mb-1">Bulk Upload Scores</h4>
+          <p class="text-[10px] text-gold-700 font-bold uppercase tracking-widest">Upload results for multiple students at once</p>
+        </div>
+        <div class="flex items-center gap-4 w-full md:w-auto">
+          <button @click="downloadTemplate" class="flex-1 md:flex-none flex items-center justify-center px-6 py-3 bg-gold-900/10 text-gold-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-500 hover:text-black transition-all border border-gold-500/20">
+            <Download class="w-4 h-4 mr-2" />
+            Template
+          </button>
+          <label class="flex-1 md:flex-none flex items-center justify-center px-6 py-3 bg-gold-500 text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-400 transition-all cursor-pointer">
+            <Upload class="w-4 h-4 mr-2" />
+            Upload CSV
+            <input type="file" @change="handleBulkUpload" class="hidden" accept=".csv" />
+          </label>
         </div>
       </div>
+    </div>
 
       <div class="mt-8 md:mt-10 flex items-center justify-center space-x-3 px-4 text-center">
         <AlertCircle class="w-5 h-5 text-gold-700 shrink-0" />

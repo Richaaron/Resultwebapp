@@ -80,8 +80,12 @@ export const useResultStore = defineStore('result', {
       return res.data;
     },
     async getBroadsheet(params: any) {
-      const res = await api.get('/reports/broadsheet', { params });
-      return res.data;
+      const response = await api.get('/reports/broadsheet', { params });
+      return response.data;
+    },
+    async getCumulativeBroadsheet(params: any) {
+      const response = await api.get('/reports/broadsheet/cumulative', { params });
+      return response.data;
     },
     async getStudentById(id: number): Promise<Student> {
       try {

@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useResultStore } from '../store';
-import { Printer, Download, ChevronLeft, Users, FileDown } from 'lucide-vue-next';
+import { Printer, Download, ChevronLeft, Users, FileDown, TrendingUp } from 'lucide-vue-next';
 import type { Student, ResultSummary } from '../types';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
+
+import { getOrdinal } from '../utils/helpers';
 
 const props = defineProps<{
   id: string;
@@ -15,11 +20,47 @@ const student = ref<Student | null>(null);
 const resultSummary = ref<ResultSummary | null>(null);
 const loading = ref(true);
 const reportCardRef = ref<HTMLElement | null>(null);
+const chartCanvas = ref<HTMLCanvasElement | null>(null);
+let performanceChart: Chart | null = null;
 
 const filters = ref({
   term: 'First',
   session: '2023/2024',
 });
+
+const initChart = () => {
+  if (!chartCanvas.value || !resultSummary.value) return;
+  
+  if (performanceChart) performanceChart.destroy();
+
+  const labels = resultSummary.value.results.map((r: any) => r.subject?.name);
+  const data = resultSummary.value.results.map((r: any) => r.total);
+
+  performanceChart = new Chart(chartCanvas.value, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Subject Performance',
+        data,
+        backgroundColor: '#D4AF37',
+        borderRadius: 8,
+        barThickness: 20,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { display: false } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+};
 
 const fetchResult = async () => {
   loading.value = true;
@@ -27,6 +68,8 @@ const fetchResult = async () => {
     const studentData = await store.getStudentById(parseInt(props.id));
     student.value = studentData;
     resultSummary.value = await store.getStudentResult(parseInt(props.id), filters.value.term, filters.value.session);
+    await nextTick();
+    initChart();
   } catch (err) {
     console.error(err);
   } finally {
@@ -53,12 +96,6 @@ const handleDownloadPDF = () => {
   };
 
   html2pdf().from(element).set(opt).save();
-};
-
-const getOrdinal = (n: number) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
 };
 
 const getSubjectStat = (subjectId: number, type: 'highest' | 'lowest' | 'average') => {
@@ -148,6 +185,41 @@ const terms = ['First', 'Second', 'Third'];
             <div v-else class="w-full h-full bg-gray-100 flex items-center justify-center">
               <Users class="w-12 h-12 text-gray-300" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Summary -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10 md:mb-16">
+        <div class="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-6 rounded-2xl border-2 border-black">
+          <div class="text-center">
+            <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Total Score</p>
+            <p class="text-2xl font-black">{{ resultSummary.totalScore }}</p>
+          </div>
+          <div class="text-center border-l border-gray-200">
+            <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Average</p>
+            <p class="text-2xl font-black">{{ resultSummary.average.toFixed(2) }}%</p>
+          </div>
+          <div class="text-center border-l border-gray-200">
+            <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Position</p>
+            <p class="text-2xl font-black">{{ resultSummary.position }}{{ getOrdinal(resultSummary.position) }}</p>
+          </div>
+          <div class="text-center border-l border-gray-200">
+            <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Status</p>
+            <p class="text-2xl font-black" :class="resultSummary.average >= 40 ? 'text-green-600' : 'text-red-600'">
+              {{ resultSummary.average >= 40 ? 'PASSED' : 'FAILED' }}
+            </p>
+          </div>
+        </div>
+        
+        <!-- Performance Chart -->
+        <div class="bg-black text-white p-4 rounded-2xl border-2 border-black flex flex-col justify-between h-full min-h-[150px]">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gold-500">Analytics</span>
+            <TrendingUp class="w-3 h-3 text-gold-500" />
+          </div>
+          <div class="flex-1 relative">
+            <canvas ref="chartCanvas"></canvas>
           </div>
         </div>
       </div>

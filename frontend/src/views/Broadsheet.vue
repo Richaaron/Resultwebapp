@@ -3,12 +3,14 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useResultStore } from '../store';
 import { useAuthStore } from '../store/auth';
 import { Table, Search, Printer, ChevronLeft, Download } from 'lucide-vue-next';
+import { getOrdinal } from '../utils/helpers';
 
 const store = useResultStore();
 const auth = useAuthStore();
 const broadsheet = ref<any[]>([]);
 const subjects = ref<any[]>([]);
 const loading = ref(false);
+const viewMode = ref<'term' | 'cumulative'>('term');
 
 const filters = ref({
   class: '',
@@ -20,9 +22,18 @@ const fetchBroadsheet = async () => {
   if (!filters.value.class) return;
   loading.value = true;
   try {
-    const data = await store.getBroadsheet(filters.value);
-    broadsheet.value = data.broadsheet;
-    subjects.value = data.subjects;
+    if (viewMode.value === 'term') {
+      const data = await store.getBroadsheet(filters.value);
+      broadsheet.value = data.broadsheet;
+      subjects.value = data.subjects;
+    } else {
+      const data = await store.getCumulativeBroadsheet({
+        class: filters.value.class,
+        session: filters.value.session
+      });
+      broadsheet.value = data.cumulativeData;
+      subjects.value = data.subjects;
+    }
   } catch (err) {
     console.error(err);
   } finally {
@@ -55,13 +66,47 @@ const handleDownloadCSV = () => {
 
 <template>
   <div class="space-y-6 md:space-y-10">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-        <select v-model="filters.class" @change="fetchBroadsheet" class="px-5 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
-          <option value="">SELECT CLASS</option>
-          <option v-for="c in uniqueClasses" :key="c" :value="c">{{ c }}</option>
-        </select>
-        <select v-model="filters.term" @change="fetchBroadsheet" class="px-5 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 print:hidden">
+      <div>
+        <h3 class="text-xl md:text-3xl font-black text-gold-500 uppercase tracking-widest">Academic Broadsheet</h3>
+        <p class="text-gold-700 text-[10px] font-black uppercase tracking-[0.3em] mt-1">Class-wide performance records</p>
+      </div>
+      
+      <!-- View Mode Switcher -->
+      <div class="flex p-1 bg-gold-900/10 rounded-xl border border-gold-900/20">
+        <button 
+          @click="viewMode = 'term'; fetchBroadsheet()"
+          :class="[
+            'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
+            viewMode === 'term' ? 'bg-gold-500 text-black' : 'text-gold-700 hover:text-gold-500'
+          ]"
+        >
+          Termly
+        </button>
+        <button 
+          @click="viewMode = 'cumulative'; fetchBroadsheet()"
+          :class="[
+            'px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
+            viewMode === 'cumulative' ? 'bg-gold-500 text-black' : 'text-gold-700 hover:text-gold-500'
+          ]"
+        >
+          Cumulative
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-[#0d0a00] p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 print:hidden">
+      <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+        <div class="relative min-w-[150px]">
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold-900" />
+          <select v-model="filters.class" @change="fetchBroadsheet" class="w-full pl-12 pr-6 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm appearance-none">
+            <option value="">SELECT CLASS</option>
+            <option v-for="c in uniqueClasses" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </div>
+
+        <select v-if="viewMode === 'term'" v-model="filters.term" @change="fetchBroadsheet" class="px-5 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
           <option v-for="t in terms" :key="t" :value="t">{{ t }} Term</option>
         </select>
       </div>
@@ -78,35 +123,56 @@ const handleDownloadCSV = () => {
       </div>
     </div>
 
-    <div v-if="broadsheet.length > 0" class="bg-[#0d0a00] rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border border-gold-900/20 overflow-hidden print:bg-white print:border-none print:shadow-none print:rounded-none">
-      <div class="p-6 md:p-10 border-b border-gold-900/30 print:text-black">
-        <h3 class="text-xl md:text-2xl font-black text-gold-500 uppercase tracking-widest mb-2">Class Broadsheet</h3>
-        <p class="text-gold-700 text-[10px] font-black uppercase tracking-[0.3em]">{{ filters.class }} | {{ filters.term }} Term | {{ filters.session }}</p>
-      </div>
-
+    <!-- Broadsheet Table -->
+    <div v-if="broadsheet.length > 0" class="bg-[#0d0a00] rounded-[2rem] shadow-2xl border border-gold-900/20 overflow-hidden animate-fade-up">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[800px] md:min-w-[1000px]">
+        <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gold-900/10 text-gold-700 border-b border-gold-900/30">
-              <th class="px-4 md:px-6 py-4 md:py-5 text-[10px] font-black uppercase tracking-widest sticky left-0 bg-[#0d0a00] print:bg-white z-10">Rank</th>
-              <th class="px-4 md:px-6 py-4 md:py-5 text-[10px] font-black uppercase tracking-widest sticky left-12 md:left-16 bg-[#0d0a00] print:bg-white z-10 min-w-[150px] md:min-w-[200px]">Student Name</th>
-              <th v-for="sub in subjects" :key="sub.id" class="px-3 md:px-4 py-4 md:py-5 text-[10px] font-black uppercase tracking-widest text-center border-l border-gold-900/10">{{ sub.name }}</th>
-              <th class="px-4 md:px-6 py-4 md:py-5 text-[10px] font-black uppercase tracking-widest text-center border-l border-gold-900/30 bg-gold-900/20">Total</th>
-              <th class="px-4 md:px-6 py-4 md:py-5 text-[10px] font-black uppercase tracking-widest text-center border-l border-gold-900/10 bg-gold-900/20">AVG</th>
+            <tr class="bg-gold-500 text-black text-[10px] font-black uppercase tracking-widest">
+              <th class="px-6 py-5 border-r border-black/10">Student</th>
+              <th v-for="subject in subjects" :key="subject.id" class="px-4 py-5 text-center border-r border-black/10 min-w-[100px]">
+                {{ subject.name }}
+                <div v-if="viewMode === 'cumulative'" class="flex justify-center gap-1 mt-1 text-[7px] opacity-60">
+                  <span>1ST</span><span>2ND</span><span>3RD</span><span>AVG</span>
+                </div>
+              </th>
+              <th class="px-6 py-5 text-center">
+                {{ viewMode === 'term' ? 'Total' : 'Session Avg' }}
+              </th>
+              <th class="px-6 py-5 text-center">Rank</th>
             </tr>
           </thead>
-          <tbody class="text-gold-100 divide-y divide-gold-900/10 print:text-black">
-            <tr v-for="(row, index) in broadsheet" :key="row.id" class="hover:bg-gold-900/5 transition-colors">
-              <td class="px-4 md:px-6 py-4 md:py-5 font-black text-gold-500 sticky left-0 bg-[#0d0a00] print:bg-white text-xs md:text-base">{{ index + 1 }}</td>
-              <td class="px-4 md:px-6 py-4 md:py-5 font-bold sticky left-12 md:left-16 bg-[#0d0a00] print:bg-white truncate text-xs md:text-base">{{ row.fullName }}</td>
-              <td v-for="sub in subjects" :key="sub.id" class="px-3 md:px-4 py-4 md:py-5 text-center border-l border-gold-900/10">
-                <div class="flex flex-col">
-                  <span class="font-black text-xs md:text-base">{{ row.results[sub.id]?.total || '-' }}</span>
-                  <span class="text-[8px] text-gold-700 font-black">{{ row.results[sub.id]?.grade || '' }}</span>
-                </div>
+          <tbody class="divide-y divide-gold-900/10 text-gold-100">
+            <tr v-for="(row, index) in broadsheet" :key="row.id" class="hover:bg-gold-500/5 transition-colors group">
+              <td class="px-6 py-4 border-r border-gold-900/10 min-w-[200px]">
+                <div class="font-black text-xs">{{ row.fullName }}</div>
+                <div class="text-[8px] text-gold-700 font-bold tracking-widest mt-0.5">{{ row.regNo }}</div>
               </td>
-              <td class="px-4 md:px-6 py-4 md:py-5 text-center font-black border-l border-gold-900/30 bg-gold-900/10 text-gold-500 text-xs md:text-base">{{ row.totalScore }}</td>
-              <td class="px-4 md:px-6 py-4 md:py-5 text-center font-black border-l border-gold-900/10 bg-gold-900/10 text-xs md:text-base">{{ row.average.toFixed(1) }}%</td>
+              
+              <td v-for="subject in subjects" :key="subject.id" class="px-4 py-4 text-center border-r border-gold-900/10">
+                <template v-if="viewMode === 'term'">
+                  <span class="font-bold text-xs">{{ row.results[subject.id] || '-' }}</span>
+                </template>
+                <template v-else>
+                  <div class="flex items-center justify-center gap-2">
+                    <div class="grid grid-cols-4 gap-1 w-full max-w-[120px]">
+                      <span class="text-[9px] text-gold-700">{{ row.subjectData[subject.id]?.first || 0 }}</span>
+                      <span class="text-[9px] text-gold-700">{{ row.subjectData[subject.id]?.second || 0 }}</span>
+                      <span class="text-[9px] text-gold-700">{{ row.subjectData[subject.id]?.third || 0 }}</span>
+                      <span class="text-[10px] font-black text-gold-400">{{ (row.subjectData[subject.id]?.average || 0).toFixed(0) }}</span>
+                    </div>
+                  </div>
+                </template>
+              </td>
+
+              <td class="px-6 py-4 text-center font-black text-gold-500 bg-gold-500/5">
+                {{ viewMode === 'term' ? row.totalScore : (row.sessionAverage || 0).toFixed(2) + '%' }}
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span class="inline-block px-3 py-1 rounded-full bg-gold-900/20 text-gold-500 font-black text-[10px]">
+                  {{ index + 1 }}{{ getOrdinal(index + 1) }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>

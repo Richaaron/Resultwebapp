@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useResultStore } from '../store';
 import { useAuthStore } from '../store/auth';
+import { useRoute } from 'vue-router';
 import { Plus, Search, UserPlus, Users, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const store = useResultStore();
 const auth = useAuthStore();
+const route = useRoute();
+const schoolSlug = computed(() => route.params.schoolSlug as string);
 const showModal = ref(false);
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -122,7 +125,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
               <td class="px-6 md:px-8 py-4 md:py-5 text-gold-400 font-medium text-xs">{{ student.class }}</td>
               <td class="px-6 md:px-8 py-4 md:py-5 text-right">
                 <router-link 
-                  :to="{ name: 'ResultView', params: { id: student.id }}" 
+                  :to="`/${schoolSlug}/results/${student.id}`" 
                   class="inline-block px-4 py-2 bg-gold-500/10 text-gold-500 hover:bg-gold-500 hover:text-black rounded-lg font-black text-[10px] uppercase tracking-widest transition-all border border-gold-500/20"
                 >
                   View

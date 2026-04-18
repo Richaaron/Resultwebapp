@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { LayoutDashboard, Users, FileEdit, LogOut, ShieldCheck, BookOpen, Table, Menu, X } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { LayoutDashboard, Users, FileEdit, LogOut, ShieldCheck, BookOpen, Table, Menu, X, Settings } from 'lucide-vue-next';
 import { useAuthStore } from './store/auth';
 import { useRouter, useRoute } from 'vue-router';
 import ToastContainer from './components/ToastContainer.vue';
@@ -10,10 +10,11 @@ const router = useRouter();
 const route = useRoute();
 
 const isMobileMenuOpen = ref(false);
+const schoolSlug = computed(() => route.params.schoolSlug as string);
 
 const handleLogout = () => {
   auth.logout();
-  router.push('/login');
+  router.push(`/${schoolSlug.value}/login`);
 };
 
 const closeMobileMenu = () => {
@@ -23,14 +24,18 @@ const closeMobileMenu = () => {
 
 <template>
   <ToastContainer />
-  <div v-if="route.name === 'Login'">
-    <router-view />
+  <div v-if="route.name === 'Login' || route.name === 'Setup' || route.name === 'ResultChecker'" class="min-h-screen">
+    <router-view v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
-  <div v-else class="flex h-screen bg-[#1a1400] overflow-hidden">
+  <div v-else class="min-h-screen flex flex-col lg:flex-row bg-[#1a1400]">
     <!-- Mobile Header -->
     <div class="lg:hidden fixed top-0 left-0 right-0 bg-[#0d0a00] border-b border-gold-900/30 px-6 py-4 flex items-center justify-between z-50">
-      <h1 class="text-lg font-black text-gold-500 uppercase tracking-tighter">Result System</h1>
-      <button @click="isMobileMenuOpen = true" class="text-gold-500">
+      <h1 class="text-lg font-black text-gold-500 uppercase tracking-tighter truncate pr-4">{{ auth.user?.school?.name || 'Result System' }}</h1>
+      <button @click="isMobileMenuOpen = true" class="text-gold-500 shrink-0">
         <Menu class="w-6 h-6" />
       </button>
     </div>
@@ -48,18 +53,18 @@ const closeMobileMenu = () => {
       :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <div class="p-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-xl font-black tracking-tight text-gold-500 uppercase">Result System</h1>
-          <p class="text-[10px] text-gold-700 font-bold uppercase tracking-widest">Management Suite</p>
+        <div class="overflow-hidden">
+          <h1 class="text-xl font-black tracking-tight text-gold-500 uppercase truncate">{{ auth.user?.school?.name || 'Result System' }}</h1>
+          <p class="text-[10px] text-gold-700 font-bold uppercase tracking-widest truncate">{{ auth.user?.school?.motto || 'Management Suite' }}</p>
         </div>
-        <button @click="isMobileMenuOpen = false" class="lg:hidden text-gold-700">
+        <button @click="isMobileMenuOpen = false" class="lg:hidden text-gold-700 shrink-0 ml-2">
           <X class="w-6 h-6" />
         </button>
       </div>
       
       <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
         <router-link 
-          to="/" 
+          :to="`/${schoolSlug}`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
@@ -70,7 +75,7 @@ const closeMobileMenu = () => {
 
         <router-link 
           v-if="auth.isAdmin"
-          to="/teachers" 
+          :to="`/${schoolSlug}/teachers`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
@@ -81,7 +86,7 @@ const closeMobileMenu = () => {
 
         <router-link 
           v-if="auth.isAdmin"
-          to="/subjects" 
+          :to="`/${schoolSlug}/subjects`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
@@ -91,7 +96,7 @@ const closeMobileMenu = () => {
         </router-link>
         
         <router-link 
-          to="/students" 
+          :to="`/${schoolSlug}/students`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
@@ -101,7 +106,7 @@ const closeMobileMenu = () => {
         </router-link>
 
         <router-link 
-          to="/broadsheet" 
+          :to="`/${schoolSlug}/broadsheet`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
@@ -111,13 +116,24 @@ const closeMobileMenu = () => {
         </router-link>
         
         <router-link 
-          to="/score-entry" 
+          :to="`/${schoolSlug}/score-entry`" 
           @click="isMobileMenuOpen = false"
           class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
           active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
         >
           <FileEdit class="w-5 h-5 mr-3" />
           Score Entry
+        </router-link>
+
+        <router-link 
+          v-if="auth.isAdmin"
+          :to="`/${schoolSlug}/settings`" 
+          @click="isMobileMenuOpen = false"
+          class="flex items-center px-4 py-3 text-sm font-bold rounded-xl hover:bg-gold-900/50 hover:text-gold-400 transition-all group"
+          active-class="bg-gold-500 text-black shadow-lg shadow-gold-500/20"
+        >
+          <Settings class="w-5 h-5 mr-3" />
+          Settings
         </router-link>
       </nav>
       
@@ -157,7 +173,7 @@ const closeMobileMenu = () => {
       
       <div class="p-4 md:p-8 max-w-7xl mx-auto">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
+          <transition name="page" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
@@ -167,13 +183,13 @@ const closeMobileMenu = () => {
 </template>
 
 <style>
-.fade-enter-active,
-.fade-leave-active {
+.page-enter-active,
+.page-leave-active {
   transition: opacity 0.2s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.page-enter-from,
+.page-leave-to {
   opacity: 0;
 }
 </style>

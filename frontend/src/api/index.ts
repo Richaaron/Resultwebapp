@@ -10,6 +10,14 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Extract school slug from URL if present
+  const pathParts = window.location.pathname.split('/');
+  // If path is /school-slug/dashboard, the slug is at index 1
+  if (pathParts[1] && pathParts[1] !== 'login' && pathParts[1] !== 'setup') {
+    config.headers['x-school-slug'] = pathParts[1];
+  }
+  
   return config;
 });
 

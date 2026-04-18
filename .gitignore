@@ -18,3 +18,9 @@ __pycache__
 .env.local
 .next
 .github
+
+# Database files
+*.db
+*.db-journal
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
