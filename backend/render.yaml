@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: result-app-backend
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/opt/render/project/data/dev.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://your-frontend-domain.vercel.app
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
