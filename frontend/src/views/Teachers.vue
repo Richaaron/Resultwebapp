@@ -90,7 +90,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-      <div v-for="teacher in teachers" :key="teacher.id" class="bg-[#0d0a00] p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 flex flex-col hover:border-gold-500/50 transition-all group relative overflow-hidden">
+      <div v-for="teacher in teachers" :key="teacher.id" class="bg-[darker-bg] p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 flex flex-col hover:border-gold-500/50 transition-all group relative overflow-hidden">
         <div class="absolute top-0 right-0 p-4">
           <button @click="deleteTeacher(teacher.id)" class="text-gold-900 hover:text-red-500 transition-colors p-2">
             <Trash2 class="w-5 h-5" />
@@ -134,7 +134,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
 
     <!-- Add Teacher Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div class="bg-[#0d0a00] rounded-3xl shadow-2xl w-full max-w-[450px] p-6 md:p-10 border border-gold-500/30">
+      <div class="bg-[darker-bg] rounded-3xl shadow-2xl w-full max-w-[450px] p-6 md:p-10 border border-gold-500/30">
         <div v-if="!generatedCreds">
           <h3 class="text-xl md:text-2xl font-black text-gold-500 uppercase tracking-widest mb-6 md:mb-8">Register Teacher</h3>
           <div class="space-y-4 md:space-y-6">
@@ -177,7 +177,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
 
     <!-- Assign Modal -->
     <div v-if="showAssignModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div class="bg-[#0d0a00] rounded-3xl shadow-2xl w-full max-w-[450px] p-6 md:p-10 border border-gold-500/30">
+      <div class="bg-[darker-bg] rounded-3xl shadow-2xl w-full max-w-[450px] p-6 md:p-10 border border-gold-500/30">
         <h3 class="text-lg md:text-xl font-black text-gold-500 uppercase tracking-widest mb-6 md:mb-8">Assign Responsibilities</h3>
         <div class="space-y-4 md:space-y-6">
           <div class="space-y-2">

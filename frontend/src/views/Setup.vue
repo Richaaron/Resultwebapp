@@ -46,7 +46,7 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#1a1400] flex items-center justify-center p-4 relative overflow-hidden">
+  <div class="min-h-screen bg-[dark-bg] flex items-center justify-center p-4 relative overflow-hidden">
     <!-- Decorative Academic Background -->
     <div class="absolute inset-0 pointer-events-none opacity-5">
       <svg class="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +68,7 @@ const goToLogin = () => {
       <Lock class="w-32 h-32" />
     </div>
 
-    <div class="max-w-2xl w-full bg-[#0d0a00] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl p-8 md:p-12 space-y-8 md:space-y-10 border border-gold-900/30 relative z-10 animate-fade-scale">
+    <div class="max-w-2xl w-full bg-[darker-bg] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl p-8 md:p-12 space-y-8 md:space-y-10 border border-gold-900/30 relative z-10 animate-fade-scale">
       <div v-if="!successData">
         <div class="text-center space-y-3">
           <div class="w-16 h-16 md:w-20 md:h-20 bg-gold-500 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-gold-500/20 mb-4 md:mb-6 animate-bounce" style="animation-duration: 3s">

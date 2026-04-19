@@ -73,7 +73,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
           v-model="searchQuery"
           type="text" 
           placeholder="SEARCH STUDENTS..." 
-          class="w-full pl-12 pr-6 py-4 bg-[#0d0a00] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs tracking-widest"
+          class="w-full pl-12 pr-6 py-4 bg-[darker-bg] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs tracking-widest"
         />
       </div>
       <button 
@@ -86,7 +86,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
       </button>
     </div>
 
-    <div class="bg-[#0d0a00] rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 overflow-hidden">
+    <div class="bg-[darker-bg] rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 overflow-hidden">
       <div class="overflow-x-auto -mx-0">
         <table class="w-full text-left min-w-[700px] md:min-w-0">
           <thead class="bg-gold-900/10 text-gold-700 border-b border-gold-900/30">
@@ -143,7 +143,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
     </div>
 
     <!-- Pagination -->
-    <div v-if="store.pagination.totalPages > 1" class="flex items-center justify-between bg-[#0d0a00] p-4 rounded-2xl border border-gold-900/20">
+    <div v-if="store.pagination.totalPages > 1" class="flex items-center justify-between bg-[darker-bg] p-4 rounded-2xl border border-gold-900/20">
       <div class="text-[10px] font-black text-gold-700 uppercase tracking-widest">
         Showing {{ (store.pagination.page - 1) * store.pagination.limit + 1 }} to {{ Math.min(store.pagination.page * store.pagination.limit, store.pagination.total) }} of {{ store.pagination.total }} students
       </div>
@@ -180,7 +180,7 @@ const categories = ['PRE-NURSERY', 'NURSERY', 'PRIMARY', 'SECONDARY'];
 
     <!-- Register Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div class="bg-[#0d0a00] rounded-3xl shadow-2xl w-full max-w-[550px] p-6 md:p-10 border border-gold-500/30 overflow-y-auto max-h-[90vh]">
+      <div class="bg-[darker-bg] rounded-3xl shadow-2xl w-full max-w-[550px] p-6 md:p-10 border border-gold-500/30 overflow-y-auto max-h-[90vh]">
         <div class="flex items-center mb-6 md:mb-8">
           <div class="p-3 bg-gold-500 rounded-xl md:rounded-2xl mr-4 shadow-lg shadow-gold-500/20">
             <UserPlus class="w-6 h-6 md:w-8 md:h-8 text-black" />

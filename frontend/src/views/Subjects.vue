@@ -53,7 +53,7 @@ const filteredSubjects = () => {
           v-model="searchQuery"
           type="text" 
           placeholder="SEARCH SUBJECTS..." 
-          class="w-full pl-12 pr-6 py-4 bg-[#0d0a00] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-[10px] md:text-xs tracking-widest"
+          class="w-full pl-12 pr-6 py-4 bg-[darker-bg] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-[10px] md:text-xs tracking-widest"
         />
       </div>
       
@@ -62,7 +62,7 @@ const filteredSubjects = () => {
           v-model="newSubjectName"
           type="text" 
           placeholder="NEW SUBJECT NAME..." 
-          class="flex-1 px-6 py-4 bg-[#0d0a00] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-[10px] md:text-xs tracking-widest"
+          class="flex-1 px-6 py-4 bg-[darker-bg] border border-gold-900/30 rounded-2xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-[10px] md:text-xs tracking-widest"
           @keyup.enter="handleAddSubject"
         />
         <button 
@@ -76,7 +76,7 @@ const filteredSubjects = () => {
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      <div v-for="subject in filteredSubjects()" :key="subject.id" class="bg-[#0d0a00] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-gold-900/20 flex items-center justify-between group hover:border-gold-500/50 transition-all">
+      <div v-for="subject in filteredSubjects()" :key="subject.id" class="bg-[darker-bg] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-gold-900/20 flex items-center justify-between group hover:border-gold-500/50 transition-all">
         <div class="flex items-center">
           <div class="p-2 md:p-3 bg-gold-900/20 rounded-xl mr-3 md:mr-4 group-hover:bg-gold-500/20 transition-colors">
             <BookOpen class="w-4 h-4 md:w-5 md:h-5 text-gold-500" />
@@ -89,7 +89,7 @@ const filteredSubjects = () => {
       </div>
     </div>
 
-    <div v-if="subjects.length === 0" class="text-center py-20 bg-[#0d0a00] rounded-3xl border border-gold-900/20">
+    <div v-if="subjects.length === 0" class="text-center py-20 bg-[darker-bg] rounded-3xl border border-gold-900/20">
       <BookOpen class="w-12 h-12 text-gold-900 mx-auto mb-4" />
       <p class="text-gold-800 font-black uppercase tracking-widest">No subjects configured yet.</p>
     </div>

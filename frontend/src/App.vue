@@ -31,9 +31,9 @@ const closeMobileMenu = () => {
       </transition>
     </router-view>
   </div>
-  <div v-else class="min-h-screen flex flex-col lg:flex-row bg-[#1a1400]">
+  <div v-else class="min-h-screen flex flex-col lg:flex-row bg-[dark-bg]">
     <!-- Mobile Header -->
-    <div class="lg:hidden fixed top-0 left-0 right-0 bg-[#0d0a00] border-b border-gold-900/30 px-6 py-4 flex items-center justify-between z-50">
+    <div class="lg:hidden fixed top-0 left-0 right-0 bg-[darker-bg] border-b border-gold-900/30 px-6 py-4 flex items-center justify-between z-50">
       <h1 class="text-lg font-black text-gold-500 uppercase tracking-tighter truncate pr-4">{{ auth.user?.school?.name || 'Result System' }}</h1>
       <button @click="isMobileMenuOpen = true" class="text-gold-500 shrink-0">
         <Menu class="w-6 h-6" />
@@ -49,7 +49,7 @@ const closeMobileMenu = () => {
 
     <!-- Sidebar -->
     <aside 
-      class="fixed lg:static inset-y-0 left-0 w-64 bg-[#0d0a00] text-gold-100 flex flex-col border-r border-gold-900/30 z-[70] transition-transform duration-300 lg:translate-x-0"
+      class="fixed lg:static inset-y-0 left-0 w-64 bg-[darker-bg] text-gold-100 flex flex-col border-r border-gold-900/30 z-[70] transition-transform duration-300 lg:translate-x-0"
       :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <div class="p-6 flex items-center justify-between">
@@ -159,8 +159,8 @@ const closeMobileMenu = () => {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto bg-gradient-to-br from-[#1a1400] to-[#0d0a00] pt-16 lg:pt-0">
-      <header class="hidden lg:block bg-[#0d0a00]/80 backdrop-blur-md border-b border-gold-900/30 px-8 py-5 sticky top-0 z-10">
+    <main class="flex-1 overflow-y-auto bg-gradient-to-br from-dark-bg to-darker-bg pt-16 lg:pt-0">
+      <header class="hidden lg:block bg-darker-bg/80 backdrop-blur-md border-b border-gold-900/30 px-8 py-5 sticky top-0 z-10">
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-black text-gold-500 uppercase tracking-widest">{{ route.name }}</h2>
           <div class="flex items-center space-x-6">

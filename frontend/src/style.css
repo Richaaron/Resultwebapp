@@ -10,7 +10,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  @apply bg-[#1a1400] text-gray-100;
+  @apply bg-dark-bg text-gray-100;
 }
 
 @theme {
@@ -35,6 +35,8 @@ body {
   --color-gold-700: #88591d;
   --color-gold-800: #71491e;
   --color-gold-900: #613f1d;
+  --color-dark-bg: #1a1400;
+  --color-darker-bg: #0d0a00;
 }
 
 /* Custom Scrollbar */

@@ -77,7 +77,7 @@ const stats = computed(() => [
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
       <template v-if="store.loading && !store.stats">
-        <div v-for="i in 4" :key="i" class="bg-[#0d0a00] p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gold-900/20 animate-pulse flex items-center space-x-4">
+        <div v-for="i in 4" :key="i" class="bg-[darker-bg] p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gold-900/20 animate-pulse flex items-center space-x-4">
           <div class="w-12 h-12 md:w-16 md:h-16 bg-gold-900/20 rounded-xl md:rounded-2xl"></div>
           <div class="space-y-2 flex-1">
             <div class="h-2 w-16 bg-gold-900/20 rounded"></div>
@@ -86,7 +86,7 @@ const stats = computed(() => [
         </div>
       </template>
       <div v-else v-for="(stat, index) in stats" :key="stat.name" 
-           class="bg-[#0d0a00] p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 flex items-center space-x-4 md:space-x-6 hover:border-gold-500/50 transition-all group animate-fade-scale"
+           class="bg-[darker-bg] p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-gold-900/20 flex items-center space-x-4 md:space-x-6 hover:border-gold-500/50 transition-all group animate-fade-scale"
            :class="'stagger-' + (index + 1)">
         <div :class="[stat.color, 'w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500']">
           <component :is="stat.icon" class="w-6 h-6 md:w-8 md:h-8 text-black" />
@@ -100,7 +100,7 @@ const stats = computed(() => [
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
       <!-- Recent Students -->
-      <div class="lg:col-span-2 bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 animate-fade-up stagger-3">
+      <div class="lg:col-span-2 bg-[darker-bg] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 animate-fade-up stagger-3">
         <div class="flex items-center justify-between mb-8 md:mb-10">
           <h3 class="text-lg md:text-xl font-black text-gold-500 uppercase tracking-widest">{{ auth.isAdmin ? 'Recent Students' : 'My Students' }}</h3>
           <router-link :to="`/${schoolSlug}/students`" class="text-[10px] font-black text-gold-700 hover:text-gold-500 uppercase tracking-widest transition-colors">View All</router-link>
@@ -146,7 +146,7 @@ const stats = computed(() => [
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 animate-fade-up stagger-4">
+      <div class="bg-[darker-bg] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 animate-fade-up stagger-4">
         <div class="relative overflow-hidden">
           <h3 class="text-lg md:text-xl font-black text-gold-500 uppercase tracking-widest mb-6 md:mb-8">Quick Actions</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">

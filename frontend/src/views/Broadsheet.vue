@@ -96,17 +96,17 @@ const handleDownloadCSV = () => {
     </div>
 
     <!-- Filters -->
-    <div class="bg-[#0d0a00] p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 print:hidden">
+    <div class="bg-[darker-bg] p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 print:hidden">
       <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
         <div class="relative min-w-[150px]">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold-900" />
-          <select v-model="filters.class" @change="fetchBroadsheet" class="w-full pl-12 pr-6 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm appearance-none">
+          <select v-model="filters.class" @change="fetchBroadsheet" class="w-full pl-12 pr-6 py-3 bg-[darker-bg] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm appearance-none">
             <option value="">SELECT CLASS</option>
             <option v-for="c in uniqueClasses" :key="c" :value="c">{{ c }}</option>
           </select>
         </div>
 
-        <select v-if="viewMode === 'term'" v-model="filters.term" @change="fetchBroadsheet" class="px-5 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
+        <select v-if="viewMode === 'term'" v-model="filters.term" @change="fetchBroadsheet" class="px-5 py-3 bg-[darker-bg] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
           <option v-for="t in terms" :key="t" :value="t">{{ t }} Term</option>
         </select>
       </div>
@@ -124,7 +124,7 @@ const handleDownloadCSV = () => {
     </div>
 
     <!-- Broadsheet Table -->
-    <div v-if="broadsheet.length > 0" class="bg-[#0d0a00] rounded-[2rem] shadow-2xl border border-gold-900/20 overflow-hidden animate-fade-up">
+    <div v-if="broadsheet.length > 0" class="bg-[darker-bg] rounded-[2rem] shadow-2xl border border-gold-900/20 overflow-hidden animate-fade-up">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -184,7 +184,7 @@ const handleDownloadCSV = () => {
       <p class="text-gold-800 font-black uppercase tracking-widest text-xs md:text-sm">Generating broadsheet...</p>
     </div>
 
-    <div v-else class="text-center py-20 md:py-40 bg-[#0d0a00] rounded-[1.5rem] md:rounded-[2rem] border border-gold-900/20 px-6">
+    <div v-else class="text-center py-20 md:py-40 bg-[darker-bg] rounded-[1.5rem] md:rounded-[2rem] border border-gold-900/20 px-6">
       <Table class="w-12 h-12 md:w-16 md:h-16 text-gold-900 mx-auto mb-6" />
       <h3 class="text-lg md:text-xl font-black text-gold-800 uppercase tracking-widest mb-2">Broadsheet Generator</h3>
       <p class="text-gold-900 text-[10px] md:text-xs font-bold uppercase tracking-widest">Select a class to view the full performance grid.</p>

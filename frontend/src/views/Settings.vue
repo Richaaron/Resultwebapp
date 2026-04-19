@@ -72,7 +72,7 @@ const handleSaveScales = async () => {
 <template>
   <div class="max-w-4xl mx-auto space-y-10 pb-20">
     <!-- School Profile -->
-    <div class="bg-[#0d0a00] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/20">
+    <div class="bg-[darker-bg] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/20">
       <div class="flex items-center mb-10">
         <div class="p-4 bg-gold-500 rounded-2xl mr-6 shadow-lg shadow-gold-500/20">
           <School class="w-8 h-8 text-black" />
@@ -112,7 +112,7 @@ const handleSaveScales = async () => {
     </div>
 
     <!-- Grading Scales -->
-    <div class="bg-[#0d0a00] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/20">
+    <div class="bg-[darker-bg] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/20">
       <div class="flex items-center justify-between mb-10">
         <div class="flex items-center">
           <div class="p-4 bg-gold-500 rounded-2xl mr-6 shadow-lg shadow-gold-500/20">

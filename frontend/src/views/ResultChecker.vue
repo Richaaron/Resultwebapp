@@ -41,7 +41,7 @@ const sessions = ['2023/2024', '2024/2025'];
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#1a1400] p-4 md:p-8 relative overflow-hidden">
+  <div class="min-h-screen bg-[dark-bg] p-4 md:p-8 relative overflow-hidden">
     <!-- Decorative Background -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03]">
       <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -53,7 +53,7 @@ const sessions = ['2023/2024', '2024/2025'];
     </div>
 
     <div v-if="!result" class="max-w-md mx-auto pt-20 relative z-10 animate-fade-scale">
-      <div class="bg-[#0d0a00] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/30 space-y-8 hover:border-gold-500/50 transition-all duration-500">
+      <div class="bg-[darker-bg] p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-gold-900/30 space-y-8 hover:border-gold-500/50 transition-all duration-500">
         <div class="text-center space-y-3">
           <div class="w-20 h-20 bg-gold-500 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-gold-500/20 mb-6 animate-bounce" style="animation-duration: 4s">
             <GraduationCap class="w-10 h-10 text-black" />
@@ -231,7 +231,7 @@ const sessions = ['2023/2024', '2024/2025'];
 
 <style scoped>
 @media print {
-  .bg-[#1a1400] { background: white !important; }
+  .bg-[dark-bg] { background: white !important; }
   .p-4, .md\:p-8 { padding: 0 !important; }
   .rounded-\[2rem\] { border-radius: 0 !important; }
 }

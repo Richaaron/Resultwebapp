@@ -23,18 +23,9 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#1a1400] flex items-center justify-center p-4 relative overflow-hidden">
-    <!-- Decorative Background -->
-    <div class="absolute inset-0 pointer-events-none opacity-5">
-      <svg class="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="login-pattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-            <path d="M40 0 L80 40 L40 80 L0 40 Z" fill="none" stroke="currentColor" stroke-width="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#login-pattern)" />
-      </svg>
-    </div>
+  <div class="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Animated background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-dark-bg via-darker-bg to-dark-bg"></div>
 
     <!-- Floating Icons -->
     <div class="absolute top-1/4 left-10 text-gold-500/10 animate-pulse hidden lg:block">
@@ -44,7 +35,7 @@ const handleLogin = async () => {
       <LogIn class="w-40 h-40" />
     </div>
 
-    <div class="max-w-md w-full bg-[#0d0a00] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl p-8 md:p-12 space-y-8 md:space-y-10 border border-gold-900/30 relative z-10 animate-fade-scale">
+    <div class="max-w-md w-full bg-darker-bg rounded-[2rem] md:rounded-[2.5rem] shadow-2xl p-8 md:p-12 space-y-8 md:space-y-10 border border-gold-900/30 relative z-10 animate-fade-scale">
       <div class="text-center space-y-3">
         <div class="w-16 h-16 md:w-20 md:h-20 bg-gold-500 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-gold-500/20 mb-4 md:mb-6 animate-bounce" style="animation-duration: 4s">
           <Lock class="w-8 h-8 md:w-10 md:h-10 text-black" />

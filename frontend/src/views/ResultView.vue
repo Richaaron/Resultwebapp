@@ -88,11 +88,17 @@ const handleDownloadPDF = () => {
   
   const element = reportCardRef.value;
   const opt = {
-    margin: 10,
+    margin: [10, 10, 10, 10] as [number, number, number, number],
     filename: `${student.value?.firstName}_${student.value?.lastName}_Result_${filters.value.term}_Term.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: { 
+      scale: 3, 
+      useCORS: true, 
+      letterRendering: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
   };
 
   html2pdf().from(element).set(opt).save();
@@ -116,7 +122,7 @@ const terms = ['First', 'Second', 'Third'];
       </router-link>
       
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
-        <select v-model="filters.term" @change="fetchResult" class="px-5 py-3 bg-[#0d0a00] border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
+        <select v-model="filters.term" @change="fetchResult" class="px-5 py-3 bg-darker-bg border border-gold-900/30 rounded-xl text-gold-100 font-bold outline-none focus:border-gold-500 transition-all text-xs md:text-sm">
           <option v-for="t in terms" :key="t" :value="t">{{ t }} Term</option>
         </select>
         <div class="flex items-center gap-3">
@@ -135,7 +141,15 @@ const terms = ['First', 'Second', 'Third'];
     <!-- Report Card -->
     <div v-if="student && resultSummary" ref="reportCardRef" class="bg-white p-6 md:p-16 rounded-[1.5rem] md:rounded-[3rem] shadow-2xl border border-gold-900/10 text-black print:shadow-none print:border-0 print:p-0">
       <!-- Header -->
-      <div class="text-center space-y-2 md:space-y-3 mb-10 md:mb-16 border-b-4 border-gold-500 pb-8 md:pb-10">
+      <div class="bg-darker-bg p-8 md:p-16 text-center relative overflow-hidden border-b-4 border-gold-500 mb-10 md:mb-16">
+        <div class="absolute inset-0 opacity-10 pointer-events-none">
+          <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <pattern id="header-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="currentColor" stroke-width="0.5" />
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#header-pattern)" />
+          </svg>
+        </div>
         <h1 class="text-2xl md:text-4xl font-black text-black uppercase tracking-[0.1em] md:tracking-[0.2em]">Result Management System</h1>
         <p class="text-[10px] md:text-sm font-black text-gray-500 uppercase tracking-widest">Academic Excellence Tracking Suite</p>
         <div class="mt-4 md:mt-6 inline-block bg-black text-gold-500 px-6 md:px-10 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] md:tracking-[0.3em]">

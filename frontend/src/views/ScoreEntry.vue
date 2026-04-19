@@ -180,7 +180,7 @@ const sessions = ['2023/2024', '2024/2025'];
 
 <template>
   <div class="max-w-4xl mx-auto space-y-6 md:space-y-10">
-    <div class="bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 relative overflow-hidden">
+    <div class="bg-[darker-bg] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20 relative overflow-hidden">
       <div class="absolute top-0 right-0 p-4 md:p-8">
         <FileEdit class="w-10 h-10 md:w-16 md:h-16 text-gold-900/20" />
       </div>
@@ -284,7 +284,7 @@ const sessions = ['2023/2024', '2024/2025'];
     </div>
 
     <!-- Behavioral Assessment -->
-    <div class="bg-[#0d0a00] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20">
+    <div class="bg-[darker-bg] p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl border border-gold-900/20">
       <h3 class="text-xl md:text-2xl font-black text-gold-500 uppercase tracking-widest mb-8 md:mb-10">Behavioral Assessment</h3>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
