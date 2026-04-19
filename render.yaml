@@ -10,12 +10,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:/opt/render/project/data/dev.db
+        fromService:
+          type: database
+          name: result-app-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
         value: https://your-frontend-domain.vercel.app
-    disk:
-      name: sqlite-data
-      mountPath: /opt/render/project/data
-      sizeGB: 1
+
+databases:
+  - name: result-app-db
+    plan: free
